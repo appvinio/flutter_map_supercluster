@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
+import 'package:flutter_map_supercluster/src/widget/rotate.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supercluster/supercluster.dart';
 
@@ -15,6 +16,7 @@ class ClusterWidget extends StatelessWidget {
   final VoidCallback onTap;
   final Size size;
   final Point<double> position;
+  final Rotate? rotate;
 
   ClusterWidget({
     Key? key,
@@ -23,6 +25,7 @@ class ClusterWidget extends StatelessWidget {
     required this.builder,
     required this.onTap,
     required this.size,
+    required this.rotate,
   })  : position = _getClusterPixel(mapCalculator, cluster),
         super(key: ValueKey(cluster.uuid));
 
@@ -37,12 +40,24 @@ class ClusterWidget extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: builder(
-          context,
-          LatLng(cluster.latitude, cluster.longitude),
-          clusterData.markerCount,
-          clusterData.innerData,
-        ),
+        child: rotate == null
+            ? builder(
+                context,
+                LatLng(cluster.latitude, cluster.longitude),
+                clusterData.markerCount,
+                clusterData.innerData,
+              )
+            : Transform.rotate(
+                angle: rotate!.angle,
+                origin: rotate!.origin,
+                alignment: rotate!.alignment,
+                child: builder(
+                  context,
+                  LatLng(cluster.latitude, cluster.longitude),
+                  clusterData.markerCount,
+                  clusterData.innerData,
+                ),
+              ),
       ),
     );
   }
@@ -51,8 +66,7 @@ class ClusterWidget extends StatelessWidget {
     MapCalculator mapCalculator,
     LayerCluster<Marker> cluster,
   ) {
-    final pos =
-        mapCalculator.getPixelFromPoint(mapCalculator.clusterPoint(cluster));
+    final pos = mapCalculator.getPixelFromPoint(mapCalculator.clusterPoint(cluster));
 
     return mapCalculator.removeClusterAnchor(pos, cluster);
   }
