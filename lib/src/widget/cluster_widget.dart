@@ -66,7 +66,8 @@ class ClusterWidget extends StatelessWidget {
     MapCalculator mapCalculator,
     LayerCluster<Marker> cluster,
   ) {
-    final pos = mapCalculator.getPixelFromPoint(mapCalculator.clusterPoint(cluster));
+    final pos =
+        mapCalculator.getPixelFromPoint(mapCalculator.clusterPoint(cluster));
 
     return mapCalculator.removeClusterAnchor(pos, cluster);
   }

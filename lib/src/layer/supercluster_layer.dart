@@ -59,8 +59,8 @@ class SuperclusterLayer extends StatefulWidget {
   /// use a package which does this for you to avoid waiting for the isolate to
   /// be created every time a load occurs. In that case pass them the
   /// [superclusterConfig] and the [createSupercluster] functions.
-  final Future<Supercluster<Marker>> Function(SuperclusterConfig superclusterConfig)?
-      wrapIndexCreation;
+  final Future<Supercluster<Marker>> Function(
+      SuperclusterConfig superclusterConfig)? wrapIndexCreation;
 
   /// The minimum number of points required to form a cluster, if there is less
   /// than this number of points within the [maxClusterRadius] the markers will
@@ -179,7 +179,8 @@ class SuperclusterLayer extends StatefulWidget {
   State<SuperclusterLayer> createState() => _SuperclusterLayerState();
 }
 
-class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProviderStateMixin {
+class _SuperclusterLayerState extends State<SuperclusterLayer>
+    with TickerProviderStateMixin {
   static const defaultMinZoom = 1;
   static const defaultMaxZoom = 20;
 
@@ -196,7 +197,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
 
   PopupState? _popupState;
 
-  CancelableCompleter<Supercluster<Marker>> _superclusterCompleter = CancelableCompleter();
+  CancelableCompleter<Supercluster<Marker>> _superclusterCompleter =
+      CancelableCompleter();
 
   @override
   void didChangeDependencies() {
@@ -207,14 +209,16 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     _mapState = mapState;
 
     bool firstInitialization = previousMapState == null;
-    bool mapStateNewOrChanged = firstInitialization || mapState != previousMapState;
+    bool mapStateNewOrChanged =
+        firstInitialization || mapState != previousMapState;
 
     final oldMinZoom = firstInitialization ? null : minZoom;
     final oldMaxZoom = firstInitialization ? null : maxZoom;
     minZoom = mapState.options.minZoom?.ceil() ?? defaultMinZoom;
     maxZoom = mapState.options.maxZoom?.ceil() ?? defaultMaxZoom;
 
-    bool zoomsChanged = !firstInitialization && oldMinZoom != minZoom || oldMaxZoom != maxZoom;
+    bool zoomsChanged =
+        !firstInitialization && oldMinZoom != minZoom || oldMaxZoom != maxZoom;
 
     if (mapStateNewOrChanged) {
       _mapCalculator = MapCalculator(
@@ -237,14 +241,15 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
 
       _movementStreamSubscription?.cancel();
       if (widget.popupOptions != null) {
-        _movementStreamSubscription =
-            mapState.mapController.mapEventStream.listen((_) => _onMove(mapState));
+        _movementStreamSubscription = mapState.mapController.mapEventStream
+            .listen((_) => _onMove(mapState));
       }
     }
 
     if (mapStateNewOrChanged || zoomsChanged) {
       if (!firstInitialization) {
-        debugPrint('WARNING: Changes to the FlutterMapState have caused a rebuild of '
+        debugPrint(
+            'WARNING: Changes to the FlutterMapState have caused a rebuild of '
             'the Supercluster clusters. This can be a slow operation and '
             'should be avoided whenever possible.');
       }
@@ -274,8 +279,10 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     if (oldWidget._isMutableSupercluster != widget._isMutableSupercluster ||
         oldWidget.maxClusterRadius != widget.maxClusterRadius ||
         oldWidget.minimumClusterSize != widget.minimumClusterSize ||
-        oldWidget.calculateAggregatedClusterData != widget.calculateAggregatedClusterData) {
-      debugPrint('WARNING: Changes to the Supercluster options have caused a rebuild '
+        oldWidget.calculateAggregatedClusterData !=
+            widget.calculateAggregatedClusterData) {
+      debugPrint(
+          'WARNING: Changes to the Supercluster options have caused a rebuild '
           'of the Supercluster clusters. This can be a slow operation and '
           'should be avoided whenever possible.');
       _initializeClusterManager(_superclusterCompleter.operation
@@ -290,8 +297,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     if (widget.popupOptions != oldWidget.popupOptions) {
       _movementStreamSubscription?.cancel();
       if (widget.popupOptions != null) {
-        _movementStreamSubscription =
-            mapState.mapController.mapEventStream.listen((_) => _onMove(mapState));
+        _movementStreamSubscription = mapState.mapController.mapEventStream
+            .listen((_) => _onMove(mapState));
       }
     }
   }
@@ -305,10 +312,11 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
   }
 
   void _initializeClusterManager(Future<List<Marker>> markersFuture) {
-    (widget.controller as SuperclusterControllerImpl)
-        .updateState(const SuperclusterState(loading: true, aggregatedClusterData: null));
+    (widget.controller as SuperclusterControllerImpl).updateState(
+        const SuperclusterState(loading: true, aggregatedClusterData: null));
 
-    final supercluster = markersFuture.catchError((_) => <Marker>[]).then((markers) {
+    final supercluster =
+        markersFuture.catchError((_) => <Marker>[]).then((markers) {
       final superclusterConfig = SuperclusterConfig(
         isMutableSupercluster: widget._isMutableSupercluster,
         markers: markers,
@@ -319,14 +327,16 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
         innerClusterDataExtractor: widget.clusterDataExtractor,
       );
 
-      if (_superclusterCompleter.isCompleted || _superclusterCompleter.isCanceled) {
+      if (_superclusterCompleter.isCompleted ||
+          _superclusterCompleter.isCanceled) {
         setState(() {
           _superclusterCompleter = CancelableCompleter();
         });
       }
 
-      final newSupercluster = widget.wrapIndexCreation?.call(superclusterConfig) ??
-          compute(createSupercluster, superclusterConfig);
+      final newSupercluster =
+          widget.wrapIndexCreation?.call(superclusterConfig) ??
+              compute(createSupercluster, superclusterConfig);
 
       _superclusterCompleter.complete(newSupercluster);
       _superclusterCompleter.operation.value.then((supercluster) {
@@ -338,7 +348,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     });
 
     if (widget.controller != null) {
-      (widget.controller as SuperclusterControllerImpl).setSupercluster(supercluster);
+      (widget.controller as SuperclusterControllerImpl)
+          .setSupercluster(supercluster);
     }
   }
 
@@ -368,7 +379,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     );
   }
 
-  Widget _wrapWithPopupStateIfPopupsEnabled(Widget Function(PopupState? popupState) builder) {
+  Widget _wrapWithPopupStateIfPopupsEnabled(
+      Widget Function(PopupState? popupState) builder) {
     if (widget.popupOptions == null) return builder(null);
 
     return PopupStateWrapper(builder: (context, popupState) {
@@ -396,7 +408,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
             paddedBounds.north,
             mapState.zoom.ceil(),
           )..sort(_clustersLast))
-              .map((layerElement) => _buildMarkerOrCluster(mapState, layerElement)),
+              .map((layerElement) =>
+                  _buildMarkerOrCluster(mapState, layerElement)),
         ]);
       },
     );
@@ -442,7 +455,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     final popupOptions = widget.popupOptions;
     if (popupOptions?.selectedMarkerBuilder != null &&
         _popupState!.selectedMarkers.contains(marker)) {
-      markerBuilder = ((context) => widget.popupOptions!.selectedMarkerBuilder!(context, marker));
+      markerBuilder = ((context) =>
+          widget.popupOptions!.selectedMarkerBuilder!(context, marker));
     }
 
     return MarkerWidget(
@@ -495,7 +509,8 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
   }
 
   void _onMove(FlutterMapState mapState) {
-    if (_hidePopupIfZoomLessThan != null && mapState.zoom.ceil() < _hidePopupIfZoomLessThan!) {
+    if (_hidePopupIfZoomLessThan != null &&
+        mapState.zoom.ceil() < _hidePopupIfZoomLessThan!) {
       widget.popupOptions?.popupController.hideAllPopups();
       _hidePopupIfZoomLessThan = null;
     }
@@ -505,10 +520,12 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     if (widget.controller == null) return;
 
     _superclusterCompleter.operation.value.then((supercluster) {
-      final aggregatedClusterData =
-          widget.calculateAggregatedClusterData ? supercluster.aggregatedClusterData() : null;
-      final clusterData =
-          aggregatedClusterData == null ? null : (aggregatedClusterData as ClusterData);
+      final aggregatedClusterData = widget.calculateAggregatedClusterData
+          ? supercluster.aggregatedClusterData()
+          : null;
+      final clusterData = aggregatedClusterData == null
+          ? null
+          : (aggregatedClusterData as ClusterData);
       (widget.controller as SuperclusterControllerImpl).updateState(
         SuperclusterState(
           loading: false,
@@ -518,11 +535,11 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
     });
   }
 
-  void _onControllerChange(
-      SuperclusterControllerImpl? oldController, SuperclusterControllerImpl? newController) {
+  void _onControllerChange(SuperclusterControllerImpl? oldController,
+      SuperclusterControllerImpl? newController) {
     _controllerSubscription?.cancel();
-    _controllerSubscription =
-        newController?.stream.listen((markerEvent) => _onMarkerEvent(markerEvent));
+    _controllerSubscription = newController?.stream
+        .listen((markerEvent) => _onMarkerEvent(markerEvent));
 
     if (oldController != null) {
       oldController.removeSupercluster();
@@ -535,19 +552,22 @@ class _SuperclusterLayerState extends State<SuperclusterLayer> with TickerProvid
   void _onMarkerEvent(MarkerEvent markerEvent) {
     if (markerEvent is AddMarkerEvent) {
       _superclusterCompleter.operation.then((supercluster) {
-        (supercluster as SuperclusterMutable<Marker>).insert(markerEvent.marker);
+        (supercluster as SuperclusterMutable<Marker>)
+            .insert(markerEvent.marker);
         _onMarkersChange();
       });
     } else if (markerEvent is RemoveMarkerEvent) {
       _superclusterCompleter.operation.then((supercluster) {
-        final removed = (supercluster as SuperclusterMutable<Marker>).remove(markerEvent.marker);
+        final removed = (supercluster as SuperclusterMutable<Marker>)
+            .remove(markerEvent.marker);
         if (removed) _onMarkersChange();
       });
     } else if (markerEvent is ReplaceAllMarkerEvent) {
       _initializeClusterManager(Future.value(markerEvent.markers));
     } else if (markerEvent is ModifyMarkerEvent) {
       _superclusterCompleter.operation.then((supercluster) {
-        final modified = (supercluster as SuperclusterMutable<Marker>).modifyPointData(
+        final modified =
+            (supercluster as SuperclusterMutable<Marker>).modifyPointData(
           markerEvent.oldMarker,
           markerEvent.newMarker,
           updateParentClusters: markerEvent.updateParentClusters,
